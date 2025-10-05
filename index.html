@@ -1,0 +1,755 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lucky Draw - Random Name Picker</title>
+    <style>
+        @font-face {
+            font-family: 'Gill Sans MT';
+            src: url('gillsansmt.ttf') format('truetype');
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Gill Sans MT', sans-serif;
+            /* The image is now linked directly in the code */
+            background-image: url('unnamed.png');
+            background-size: contain; /* Changed from cover to contain to prevent cropping */
+            background-position: center;
+            background-repeat: no-repeat;
+            background-color: #fec63b; /* Added a fallback color to prevent black bars */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .fullscreen-btn,
+        .settings-icon {
+            position: absolute;
+            top: 20px;
+            background: rgba(255, 255, 255, 0.25);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: white;
+            width: 50px;
+            height: 50px;
+            border-radius: 15px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .fullscreen-btn {
+            right: 80px;
+        }
+
+        .settings-icon {
+            right: 20px;
+        }
+
+        .fullscreen-btn:hover,
+        .settings-icon:hover {
+            background: rgba(255, 255, 255, 0.35);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.25);
+        }
+
+        .container {
+            text-align: center;
+            max-width: 900px;
+            width: 100%;
+        }
+
+        h1 {
+            color: #293351;
+            font-size: 80px;
+            font-weight: 700;
+            text-shadow: 
+                3px 3px 0 #fff,
+                6px 6px 15px rgba(0, 0, 0, 0.3);
+            margin-bottom: 60px;
+            letter-spacing: 3px;
+        }
+
+        .display-box {
+            background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+            border: 20px solid #ff02aa;
+            border-radius: 30px;
+            padding: 80px 40px;
+            margin-bottom: 50px;
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 
+                0 15px 40px rgba(0, 0, 0, 0.3),
+                inset 0 0 0 3px white;
+            position: relative;
+        }
+
+        .light-dot {
+            position: absolute;
+            width: 16px;
+            height: 16px;
+            background: #e6c415;
+            border-radius: 50%;
+            border: 3px solid #018ec4;
+            box-shadow: 
+                0 0 15px #fec63b,
+                0 0 25px #fec63b,
+                0 0 35px rgba(254, 198, 59, 0.6);
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+            50% {
+                opacity: 0.6;
+                transform: scale(0.8);
+            }
+        }
+
+        .winner-name {
+            color: #2d3436;
+            font-size: 52px;
+            font-weight: 700;
+            z-index: 1;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .placeholder {
+            color: #b2bec3;
+            font-size: 28px;
+            -webkit-text-fill-color: #b2bec3;
+        }
+        
+        .button-container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+        }
+
+        .draw-button {
+            background: linear-gradient(145deg, #fec63b 0%, #ffd666 50%, #fec63b 100%);
+            border: none;
+            border-radius: 20px;
+            padding: 22px 90px;
+            font-size: 36px;
+            font-weight: 700;
+            color: #293351;
+        
+            text-shadow: 1px 1px 2px rgba(255, 255, 255, 0.3);
+            cursor: pointer;
+            box-shadow: 
+                0 6px 0 #d4a02c,
+                0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: all 0.2s ease;
+            font-family: 'Gill Sans MT', sans-serif;
+        }
+
+        .draw-button:hover {
+            transform: translateY(-3px);
+            box-shadow: 
+                0 9px 0 #d4a02c,
+                0 13px 30px rgba(0, 0, 0, 0.35);
+        }
+
+        .draw-button:active {
+            transform: translateY(4px);
+            box-shadow: 
+                0 2px 0 #d4a02c,
+                0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+        
+        .stop-button {
+            background: linear-gradient(145deg, #fec63b 0%, #ff4db8 50%, #fec63b 100%);
+            color: white;
+            box-shadow: 0 6px 0 #c70084;
+        }
+        
+        .stop-button:hover {
+            box-shadow: 0 9px 0 #c70084, 0 13px 30px rgba(0, 0, 0, 0.35);
+        }
+        
+        .stop-button:active {
+             box-shadow: 0 2px 0 #c70084, 0 6px 15px rgba(0, 0, 0, 0.25);
+        }
+
+
+        .draw-button:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        footer {
+            position: absolute;
+            bottom: 20px;
+            color: white;
+            font-size: 15px;
+            text-align: center;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        footer a {
+            color: white;
+            text-decoration: none;
+            margin: 0 10px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        footer a:hover {
+            text-decoration: underline;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: white;
+            border-radius: 25px;
+            padding: 35px;
+            max-width: 550px;
+            width: 90%;
+            max-height: 85vh;
+            overflow-y: auto;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.4);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+            padding-bottom: 20px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .modal-header h2 {
+            color: #2d3436;
+            font-size: 28px;
+            font-weight: 700;
+        }
+
+        .close-btn {
+            background: #f8f9fa;
+            border: none;
+            font-size: 32px;
+            color: #636e72;
+            cursor: pointer;
+            padding: 0;
+            width: 40px;
+            height: 40px;
+            line-height: 1;
+            border-radius: 12px;
+            transition: all 0.3s ease;
+        }
+
+        .close-btn:hover {
+            background: #e9ecef;
+            transform: rotate(90deg);
+        }
+
+        .tabs {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            border-bottom: 3px solid #f0f0f0;
+        }
+
+        .tab {
+            padding: 12px 24px;
+            background: none;
+            border: none;
+            color: #b2bec3;
+            font-size: 17px;
+            font-weight: 600;
+            cursor: pointer;
+            border-bottom: 4px solid transparent;
+            margin-bottom: -3px;
+            transition: all 0.3s ease;
+            font-family: 'Gill Sans MT', sans-serif;
+        }
+
+        .tab.active {
+            color: #667eea;
+            border-bottom-color: #667eea;
+        }
+
+        .tab:hover:not(.active) {
+            color: #74b9ff;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .setting-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 0;
+            border-bottom: 2px solid #f8f9fa;
+        }
+
+        .setting-item:last-child {
+            border-bottom: none;
+        }
+
+        .setting-label {
+            color: #2d3436;
+            font-size: 17px;
+            font-weight: 600;
+        }
+
+        .toggle {
+            position: relative;
+            width: 60px;
+            height: 32px;
+            background: #dfe6e9;
+            border-radius: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .toggle.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 24px;
+            height: 24px;
+            background: white;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+        }
+
+        .toggle.active .toggle-slider {
+            transform: translateX(28px);
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 320px;
+            padding: 18px;
+            border: 3px solid #f0f0f0;
+            border-radius: 15px;
+            font-size: 15px;
+            font-family: 'Gill Sans MT', sans-serif;
+            resize: vertical;
+            transition: all 0.3s ease;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 25px;
+        }
+
+        .modal-btn {
+            flex: 1;
+            padding: 14px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-family: 'Gill Sans MT', sans-serif;
+        }
+
+        .save-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .save-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .discard-btn {
+            background: #f8f9fa;
+            color: #636e72;
+        }
+
+        .discard-btn:hover {
+            background: #e9ecef;
+        }
+
+        .spinning {
+            animation: spinEffect 0.1s ease-in-out infinite;
+        }
+
+        @keyframes spinEffect {
+            0%, 100% { 
+                transform: scale(1);
+            }
+            50% { 
+                transform: scale(1.05);
+            }
+        }
+
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 56px;
+                margin-bottom: 40px;
+            }
+
+            .display-box {
+                padding: 60px 25px;
+            }
+
+            .winner-name {
+                font-size: 38px;
+            }
+
+            .button-container {
+                flex-direction: column;
+                align-items: center;
+            }
+
+            .draw-button {
+                padding: 18px 70px;
+                font-size: 28px;
+                width: 100%;
+                max-width: 400px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <button class="fullscreen-btn" id="fullscreenBtn" title="Fullscreen">⛶</button>
+    <button class="settings-icon" id="settingsBtn" title="Settings">☰</button>
+
+    <div class="container">
+        <h1>TipTop Draw</h1>
+        
+        <div class="display-box">
+            <!-- Lights -->
+            <div class="light-dot" style="top: -11px; left: 80px;"></div>
+            <div class="light-dot" style="top: -11px; left: 180px; animation-delay: 0.2s;"></div>
+            <div class="light-dot" style="top: -11px; left: 50%; transform: translateX(-50%); animation-delay: 0.3s;"></div>
+            <div class="light-dot" style="top: -11px; right: 180px; animation-delay: 0.4s;"></div>
+            <div class="light-dot" style="top: -11px; right: 80px; animation-delay: 0.5s;"></div>
+            <div class="light-dot" style="bottom: -11px; left: 80px; animation-delay: 0.6s;"></div>
+            <div class="light-dot" style="bottom: -11px; left: 180px; animation-delay: 0.7s;"></div>
+            <div class="light-dot" style="bottom: -11px; left: 50%; transform: translateX(-50%); animation-delay: 0.8s;"></div>
+            <div class="light-dot" style="bottom: -11px; right: 180px; animation-delay: 0.9s;"></div>
+            <div class="light-dot" style="bottom: -11px; right: 80px; animation-delay: 1s;"></div>
+            <div class="light-dot" style="left: -11px; top: 60px; animation-delay: 0.1s;"></div>
+            <div class="light-dot" style="left: -11px; bottom: 60px; animation-delay: 0.7s;"></div>
+            <div class="light-dot" style="right: -11px; top: 60px; animation-delay: 0.15s;"></div>
+            <div class="light-dot" style="right: -11px; bottom: 60px; animation-delay: 0.75s;"></div>
+            
+            <div class="winner-name placeholder" id="display"></div>
+        </div>
+
+        <div class="button-container">
+            <button class="draw-button" id="drawBtn">Draw</button>
+            <button class="draw-button stop-button" id="stopBtn" style="display: none;">Stop</button>
+        </div>
+    </div>
+
+    <footer>
+        © TipTop 2025 ・ <a href="#" target="_blank">Github</a>
+    </footer>
+
+    <div class="modal" id="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>Settings</h2>
+                <button class="close-btn" id="closeBtn">&times;</button>
+            </div>
+
+            <div class="tabs">
+                <button class="tab active" data-tab="settings">Settings</button>
+                <button class="tab" data-tab="namelist">Name List</button>
+            </div>
+
+            <div class="tab-content active" id="settings-tab">
+                <div class="setting-item">
+                    <span class="setting-label">Remove winner from list</span>
+                    <div class="toggle active" id="removeWinnerToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+                <div class="setting-item">
+                    <span class="setting-label">Enable sound effect</span>
+                    <div class="toggle active" id="soundToggle">
+                        <div class="toggle-slider"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="tab-content" id="namelist-tab">
+                <textarea id="nameList" placeholder="Enter names (one per line)"></textarea>
+            </div>
+
+            <div class="modal-footer">
+                <button class="modal-btn save-btn" id="saveBtn">Save</button>
+                <button class="modal-btn discard-btn" id="discardBtn">Discard and close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const defaultNames = [
+            'Alice Johnson',
+            'Bob Smith',
+            'Charlie Brown',
+            'Diana Prince',
+            'Edward Norton',
+            'Fiona Green',
+            'George Martin',
+            'Hannah Lee',
+            'Isaac Newton',
+            'Julia Roberts'
+        ];
+
+        let names = [...defaultNames];
+        let availableNames = [...names];
+        let removeWinner = true;
+        let soundEnabled = true;
+        let isSpinning = false;
+        let spinInterval = null; // Make spinInterval accessible globally
+
+        const display = document.getElementById('display');
+        const drawBtn = document.getElementById('drawBtn');
+        const stopBtn = document.getElementById('stopBtn'); // Get the stop button
+        const settingsBtn = document.getElementById('settingsBtn');
+        const fullscreenBtn = document.getElementById('fullscreenBtn');
+        const modal = document.getElementById('modal');
+        const closeBtn = document.getElementById('closeBtn');
+        const saveBtn = document.getElementById('saveBtn');
+        const discardBtn = document.getElementById('discardBtn');
+        const nameListTextarea = document.getElementById('nameList');
+        const removeWinnerToggle = document.getElementById('removeWinnerToggle');
+        const soundToggle = document.getElementById('soundToggle');
+
+        let audioContext;
+
+        // Helper function to mask the last 3 characters of a name
+        function maskName(name) {
+            if (name.length > 3) {
+                return name.slice(0, -4) + '****';
+            }
+            // Handle short names to avoid showing nothing or just symbols
+            return name.slice(0, 1) + '****';
+        }
+        
+        function initAudio() {
+            if (!audioContext) {
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+            }
+        }
+
+        function playSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            
+            const oscillator = audioContext.createOscillator();
+            const gainNode = audioContext.createGain();
+            
+            oscillator.connect(gainNode);
+            gainNode.connect(audioContext.destination);
+            
+            oscillator.frequency.value = 800;
+            oscillator.type = 'sine';
+            
+            gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+            gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+            
+            oscillator.start(audioContext.currentTime);
+            oscillator.stop(audioContext.currentTime + 0.1);
+        }
+
+        function playWinSound() {
+            if (!soundEnabled) return;
+            initAudio();
+            
+            const notes = [523.25, 659.25, 783.99];
+            notes.forEach((freq, index) => {
+                const oscillator = audioContext.createOscillator();
+                const gainNode = audioContext.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioContext.destination);
+                
+                oscillator.frequency.value = freq;
+                oscillator.type = 'sine';
+                
+                const startTime = audioContext.currentTime + (index * 0.1);
+                gainNode.gain.setValueAtTime(0.2, startTime);
+                gainNode.gain.exponentialRampToValueAtTime(0.01, startTime + 0.3);
+                
+                oscillator.start(startTime);
+                oscillator.stop(startTime + 0.3);
+            });
+        }
+
+        drawBtn.addEventListener('click', () => {
+            if (isSpinning || availableNames.length === 0) return;
+            
+            isSpinning = true;
+            drawBtn.style.display = 'none'; // Hide Draw button
+            stopBtn.style.display = 'block'; // Show Stop button
+            display.classList.remove('placeholder');
+            display.classList.add('spinning');
+            
+            spinInterval = setInterval(() => {
+                const randomIndex = Math.floor(Math.random() * availableNames.length);
+                const currentName = availableNames[randomIndex];
+                display.textContent = maskName(currentName); // Display masked name during spin
+                playSound();
+            }, 100);
+        });
+
+        stopBtn.addEventListener('click', () => {
+            if (!isSpinning) return;
+
+            clearInterval(spinInterval);
+            isSpinning = false;
+
+            // Pick a final winner to ensure fairness
+            const winnerIndex = Math.floor(Math.random() * availableNames.length);
+            const winner = availableNames[winnerIndex]; 
+            
+            display.textContent = maskName(winner); // Display the masked version of the final winner
+
+            display.classList.remove('spinning');
+            playWinSound();
+            
+            if (removeWinner) {
+                // Filter out ALL instances of the original winner's name from the list
+                availableNames = availableNames.filter(name => name !== winner);
+                
+                if (availableNames.length === 0) {
+                    // Optionally reset if list becomes empty
+                    availableNames = [...names]; 
+                }
+            }
+
+            drawBtn.style.display = 'block'; // Show Draw button
+            stopBtn.style.display = 'none'; // Hide Stop button
+        });
+
+        settingsBtn.addEventListener('click', () => {
+            nameListTextarea.value = availableNames.join('\n');
+            modal.classList.add('active');
+        });
+
+        fullscreenBtn.addEventListener('click', () => {
+            if (!document.fullscreenElement) {
+                document.documentElement.requestFullscreen();
+            } else {
+                document.exitFullscreen();
+            }
+        });
+
+        closeBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        discardBtn.addEventListener('click', () => {
+            modal.classList.remove('active');
+        });
+
+        saveBtn.addEventListener('click', () => {
+            const newNames = nameListTextarea.value
+                .split('\n')
+                .map(name => name.trim())
+                .filter(name => name.length > 0);
+            
+            if (newNames.length > 0) {
+                names = newNames;
+                availableNames = [...names];
+                display.textContent = "";
+                display.classList.add('placeholder');
+            }
+            
+            modal.classList.remove('active');
+        });
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                modal.classList.remove('active');
+            }
+        });
+
+        document.querySelectorAll('.tab').forEach(tab => {
+            tab.addEventListener('click', () => {
+                document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+                document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+                
+                tab.classList.add('active');
+                const tabName = tab.dataset.tab;
+                document.getElementById(`${tabName}-tab`).classList.add('active');
+            });
+        });
+
+        removeWinnerToggle.addEventListener('click', () => {
+            removeWinner = !removeWinner;
+            removeWinnerToggle.classList.toggle('active');
+        });
+
+        soundToggle.addEventListener('click', () => {
+            soundEnabled = !soundEnabled;
+            soundToggle.classList.toggle('active');
+        });
+    </script>
+</body>
+</html>
+
