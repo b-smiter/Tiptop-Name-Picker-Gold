@@ -18525,6 +18525,21 @@
             });
         }
 
+        let next = 1; 
+
+  document.addEventListener('keydown', (event) => {
+    if (event.code === 'Space') {
+      event.preventDefault();
+      if (next === 1) {
+        drawBtn.click();
+        next = 2;
+      } else {
+        stopBtn.click();
+        next = 1;
+      }
+    }
+  });
+
         drawBtn.addEventListener('click', () => {
             if (isSpinning || availableNames.length === 0) return;
             
@@ -18637,6 +18652,7 @@
     </script>
 </body>
 </html>
+
 
 
 
